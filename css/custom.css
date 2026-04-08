@@ -116,6 +116,12 @@
   border-radius: 8px;
   font-size: 0.55em;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  max-height: 480px;
+}
+
+.reveal pre code {
+  max-height: 460px;
+  line-height: 1.5;
 }
 
 .reveal code {
