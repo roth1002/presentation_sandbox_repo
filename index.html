@@ -142,9 +142,8 @@
 <!-- Slide 8: How it works -->
 <section>
   <h2>How It Works</h2>
-  <pre><code class="language-js">// sandbox-entry.jsx — 取代 src/index.js
-
-// 1. 模擬 Vision One parent frame
+  <p style="margin-bottom: 0.3em;"><code>sandbox-entry.jsx</code> 取代 <code>src/index.js</code>，移除所有外部依賴</p>
+  <pre style="font-size: 0.5em; margin: 0.3em 0;"><code class="language-js">// 1. 模擬 Vision One parent frame
 window.parent._CURRENT_ENV = 'STG';
 window.parent._CURRENT_REGION = 'US';
 
@@ -157,7 +156,7 @@ cookie.set('flag_almalinux10', '1');
 // 4. 啟動真正的 app
 import { renderApp } from './src/app';
 renderApp();</code></pre>
-  <p class="muted">Designer 不需要理解這些 — 只需要 <code>yarn dev</code></p>
+  <p class="muted" style="margin-top: 0.3em;">Designer 不需要理解這些 — 只需要 <code>yarn dev</code></p>
 </section>
 
 <!-- Slide 9: UI Flow Docs -->
