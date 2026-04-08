@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sandbox-Driven Development</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/night.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============================================================ -->
+<!-- PART 1: THE PROBLEM                                          -->
+<!-- ============================================================ -->
+
+<!-- Slide 1: Title -->
+<section>
+  <h1>Bridging Design to Code</h1>
+  <h2 style="color: var(--text-secondary); font-size: 1.2em;">Sandbox-Driven Development</h2>
+  <p class="muted" style="margin-top: 2em;">
+    Endpoint Security UX Team &middot; 2026 Q2
+  </p>
+</section>
+
+<!-- Slide 2: Traditional Workflow -->
+<section>
+  <h2>Traditional Workflow</h2>
+  <p>每個階段都在等上一個階段完成</p>
+  <div class="flow-row" style="margin-top: 1em;">
+    <div class="flow-box">PM<br><small>Write Spec</small></div>
+    <div class="flow-arrow wait">&xrarr;</div>
+    <div class="flow-box">Designer<br><small>Figma Mockup</small></div>
+    <div class="flow-arrow wait">&xrarr;</div>
+    <div class="flow-box">Frontend<br><small>Implement</small></div>
+    <div class="flow-arrow wait">&xrarr;</div>
+    <div class="flow-box">QA<br><small>Verify</small></div>
+    <div class="flow-arrow">&xrarr;</div>
+    <div class="flow-box">Release</div>
+  </div>
+  <div class="callout fragment" style="margin-top: 1.5em;">
+    <p>每一個箭頭 = 一次 handoff = <span class="danger">等待 + 資訊流失</span></p>
+  </div>
+</section>
+
+<!-- Slide 3: Pain Points -->
+<section>
+  <h2>Pain Points</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Designer 等 Frontend</h4>
+      <p>Figma 完成後，要等 Frontend 實作到一定程度才能給 PM 看到「活的 UI」</p>
+    </div>
+    <div class="card">
+      <h4>PM 等 Demo</h4>
+      <p>PM 無法在 Figma 階段就驗證完整的操作流程，真正的 feedback 總是來得太晚</p>
+    </div>
+    <div class="card">
+      <h4>Spec 理解偏差</h4>
+      <p>Figma 靜態畫面無法表達完整的狀態轉換和條件邏輯，每個人腦中的理解不同</p>
+    </div>
+    <div class="card">
+      <h4>Frontend 重工</h4>
+      <p>做完才發現 PM/Designer 想要的不是這樣，來回修改浪費大量時間</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 4: The Gap -->
+<section>
+  <h2>The Gap</h2>
+  <div style="margin: 1em 0;">
+    <div class="flow-row">
+      <div class="flow-box active">Figma Mockup<br><small class="muted">靜態畫面</small></div>
+      <div style="flex: 1; text-align: center; padding: 0 1em;">
+        <div class="big-number" style="font-size: 2em;">?</div>
+        <p class="danger" style="font-size: 0.7em;">這裡缺少了什麼</p>
+      </div>
+      <div class="flow-box active">Real UI Code<br><small class="muted">可互動介面</small></div>
+    </div>
+  </div>
+  <div class="callout fragment">
+    <p>從靜態設計到可互動的 UI 之間，需要一個<span class="highlight">低成本、快速產出</span>的橋樑</p>
+  </div>
+</section>
+
+<!-- Slide 5: What If -->
+<section>
+  <h2>What if...</h2>
+  <p style="font-size: 1.1em; color: var(--text-primary); margin-top: 1em;">
+    Designer 不用等 Frontend，<br>
+    就能產出<span class="highlight">可互動的 Demo UI</span>？
+  </p>
+  <p class="fragment" style="font-size: 0.9em; margin-top: 1.5em;">
+    而且這個 Demo 是跑在<span class="highlight">真實的 codebase</span> 上，<br>
+    用的是<span class="highlight">真實的 design system 元件</span>？
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<!-- PART 2: THE SOLUTION                                         -->
+<!-- ============================================================ -->
+
+<!-- Slide 6: Introducing Sandbox -->
+<section>
+  <h2>Introducing Sandbox</h2>
+  <p>從 production repo 萃取出的<span class="highlight">獨立可執行</span>開發環境</p>
+  <div class="grid-2" style="margin-top: 1em;">
+    <div class="card">
+      <h4>Production Repo</h4>
+      <p>需要 VPN、Auth token、Feature flags、Backend services、完整開發環境</p>
+    </div>
+    <div class="card" style="border-color: var(--success);">
+      <h4>Sandbox Repo</h4>
+      <p>零門檻啟動：<code>yarn dev</code> 就能跑。Auth/flags/permissions 全部 mock 掉</p>
+    </div>
+  </div>
+  <p class="fragment muted" style="margin-top: 1em;">
+    sandbox-entry.jsx 自動 shim 所有外部依賴，讓 app 以為自己在正常的 V1 環境裡
+  </p>
+</section>
+
+<!-- Slide 7: Architecture -->
+<section>
+  <h2>Architecture</h2>
+  <p>Subtraction, not Translation</p>
+  <pre><code style="font-size: 0.9em;">Production Repo (app-spm-ui)
+├── src/           ──→  直接複製
+├── proxy/         ──→  直接複製 (mock server)
+├── vite.config    ──→  直接複製
+├── Auth system    ──→  ✂️ 移除，用 sandbox-entry.jsx 替代
+├── Feature flags  ──→  ✂️ 全部開啟
+├── Permissions    ──→  ✂️ 全部授權
+└── Backend deps   ──→  ✂️ 用 mock server 取代
+
+= Sandbox Repo (sandbox-app-spm-ui)
+  yarn dev → 立刻可跑</code></pre>
+</section>
+
+<!-- Slide 8: How it works -->
+<section>
+  <h2>How It Works</h2>
+  <pre><code class="language-js">// sandbox-entry.jsx — 取代 src/index.js
+
+// 1. 模擬 Vision One parent frame
+window.parent._CURRENT_ENV = 'STG';
+window.parent._CURRENT_REGION = 'US';
+
+// 2. Mock auth tokens
+localStorage.setItem('uic_userGUID', 'sandbox-user');
+
+// 3. 開啟所有 feature flags
+cookie.set('flag_almalinux10', '1');
+
+// 4. 啟動真正的 app
+import { renderApp } from './src/app';
+renderApp();</code></pre>
+  <p class="muted">Designer 不需要理解這些 — 只需要 <code>yarn dev</code></p>
+</section>
+
+<!-- Slide 9: UI Flow Docs -->
+<section>
+  <h2>UI Flow Docs</h2>
+  <p>Machine-consumable 的 UI 參考文件</p>
+  <div class="grid-2" style="margin-top: 0.5em;">
+    <div>
+      <pre style="font-size: 0.85em;"><code># SPM Edit Policy
+
+Type: View (full-area)
+Trigger: Click policy row
+
+## Layout
+┌──────────────────────┐
+│ [← Back]             │
+│ ▼ General Information│
+│   Policy name: [___] │
+│   Endpoint group:[✎]│
+│ ─────────────────── │
+│ SENSOR SETTINGS      │
+│ [Tab1][Tab2][Base]   │
+│   XDR: [ON/OFF]      │
+│   ART: [ON/OFF]      │
+├──────────────────────┤
+│ [Save] [Cancel]      │
+└──────────────────────┘</code></pre>
+    </div>
+    <div>
+      <div class="card" style="margin-top: 0;">
+        <h4>For AI Tools</h4>
+        <p>ASCII art layout + 結構化表格，讓 v0/Cursor/Claude Code 能精確產出 wireframe</p>
+      </div>
+      <div class="card">
+        <h4>For Designers</h4>
+        <p>零程式碼、白話描述操作流程、Tonic One 元件名稱</p>
+      </div>
+      <div class="card">
+        <h4>Self-contained</h4>
+        <p>每個檔案獨立 — 餵一個 _overview.md + 一個 flow doc 就夠</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 10: AI-Powered Prototyping -->
+<section>
+  <h2>AI-Powered Prototyping</h2>
+  <div class="flow-row" style="margin: 1em 0;">
+    <div class="flow-box active">_overview.md<br><small>Design System</small></div>
+    <div class="flow-arrow">+</div>
+    <div class="flow-box active">flow-doc.md<br><small>單一 UI Flow</small></div>
+    <div class="flow-arrow">&xrarr;</div>
+    <div class="flow-box new" style="min-width: 140px;">AI Tool<br><small>v0 / Cursor / Claude</small></div>
+    <div class="flow-arrow">&xrarr;</div>
+    <div class="flow-box new">Working<br>Prototype</div>
+  </div>
+  <div class="callout fragment">
+    <p>AI 工具讀的是<span class="highlight">結構化規格</span>，不是模糊的自然語言描述。<br>
+    產出的程式碼直接使用 <code>@tonic-one/react</code> 元件庫。</p>
+  </div>
+</section>
+
+<!-- Slide 11: Four Sandbox Repos -->
+<section>
+  <h2>Four Sandbox Repos</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h4>sandbox-app-spm-ui <span class="badge">15 flows</span></h4>
+      <p>Sensor Policy Management<br>Policy CRUD + 10+ capability tabs</p>
+      <p class="muted"><a href="https://github.com/trend-ux/sandbox-app-spm-ui/pull/3" target="_blank">PR #3</a></p>
+    </div>
+    <div class="card">
+      <h4>sandbox-app-ves-ei-ui <span class="badge">31 flows</span></h4>
+      <p>Endpoint Inventory<br>Endpoint list + side menu + agent mgmt</p>
+      <p class="muted"><a href="https://github.com/trend-ux/sandbox-app-ves-ei-ui/pull/2" target="_blank">PR #2</a></p>
+    </div>
+    <div class="card">
+      <h4>sandbox-app-rpm-ui <span class="badge">20 flows</span></h4>
+      <p>Ring Policy Management<br>Version control + component update</p>
+      <p class="muted"><a href="https://github.com/trend-ux/sandbox-app-rpm-ui/pull/1" target="_blank">PR #1</a></p>
+    </div>
+    <div class="card">
+      <h4>sandbox-app-cpm-ui <span class="badge">12 flows</span></h4>
+      <p>Connection Policy Management<br>Relay + runtime proxy settings</p>
+      <p class="muted"><a href="https://github.com/trend-ux/sandbox-app-cpm-ui/pull/1" target="_blank">PR #1</a></p>
+    </div>
+  </div>
+  <p class="muted" style="margin-top: 0.5em;">共 78 份 UI flow 文件，涵蓋 Endpoint Security 所有前端 app</p>
+</section>
+
+<!-- Slide 12: New Workflow -->
+<section>
+  <h2>New Workflow</h2>
+  <p>從瀑布式等待到<span class="highlight">並行協作</span></p>
+  <div style="margin: 1em 0;">
+    <div class="flow-row">
+      <div class="flow-box">PM<br><small>Write Spec</small></div>
+      <div class="flow-arrow">&xrarr;</div>
+      <div class="flow-box active">Designer<br><small>Figma + AI Sandbox</small></div>
+      <div class="flow-arrow">&xrarr;</div>
+      <div class="flow-box new">Demo UI<br><small>即時可看</small></div>
+    </div>
+    <div class="flow-row" style="margin-top: 0.3em;">
+      <div style="min-width: 100px;"></div>
+      <div style="min-width: 30px;"></div>
+      <div class="flow-box active">Frontend<br><small>同步開發</small></div>
+      <div class="flow-arrow">&xrarr;</div>
+      <div class="flow-box new">Real Code<br><small>參考 Demo</small></div>
+    </div>
+  </div>
+  <div class="callout fragment">
+    <p>Designer 和 Frontend <span class="highlight">同時開工</span>。Demo UI 作為溝通基準 + 實作參考。</p>
+  </div>
+</section>
+
+<!-- Slide 13: Before vs After -->
+<section>
+  <h2>Before vs After</h2>
+  <table style="width: 100%;">
+    <thead>
+      <tr><th></th><th>Before</th><th>After</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>PM 第一次看到可互動 UI</td>
+        <td class="danger">Sprint 3（Frontend 做完）</td>
+        <td class="success">Sprint 1（Designer 用 AI 產出）</td>
+      </tr>
+      <tr>
+        <td>Designer 產出 demo 所需時間</td>
+        <td class="danger">N/A（必須等 Frontend）</td>
+        <td class="success">數小時（AI + Sandbox）</td>
+      </tr>
+      <tr>
+        <td>Spec 理解偏差發現時機</td>
+        <td class="danger">Code review 階段</td>
+        <td class="success">Demo review 階段（更早）</td>
+      </tr>
+      <tr>
+        <td>Frontend 有參考實作</td>
+        <td class="danger">只有 Figma 截圖</td>
+        <td class="success">有可跑的 demo code</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<!-- PART 3: REAL EXAMPLES                                        -->
+<!-- ============================================================ -->
+
+<!-- Slide 14: TVO-12437 -->
+<section>
+  <h2>Real Example: TVO-12437</h2>
+  <h3 style="color: var(--text-secondary);">Pattern Update + Failure Handling</h3>
+  <div class="callout">
+    <p>使用者在 Endpoint Inventory 觸發「立即更新 pattern」，<br>並在更新失敗時看到狀態和處理方式。</p>
+  </div>
+  <table style="width: 100%; margin-top: 0.5em;">
+    <thead><tr><th>UI 面向</th><th>Sandbox</th><th>Designer 要產出什麼</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>觸發更新操作</td>
+        <td><code>sandbox-app-ves-ei-ui</code></td>
+        <td>Action bar「Update Component」按鈕 + 狀態欄位</td>
+      </tr>
+      <tr>
+        <td>更新政策設定</td>
+        <td><code>sandbox-app-rpm-ui</code></td>
+        <td>Policy 設定表單 + 失敗處理 UI</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Slide 15: TVO-12437 AI Flow -->
+<section>
+  <h2>TVO-12437: Designer Workflow</h2>
+  <div class="flow-row">
+    <div class="flow-box active">endpoint-list.md<br><small>+ _overview.md</small></div>
+    <div class="flow-arrow">&xrarr;</div>
+    <div class="flow-box new">AI Tool</div>
+    <div class="flow-arrow">&xrarr;</div>
+    <div class="flow-box new">Action bar with<br>Update Component</div>
+  </div>
+  <div class="flow-row" style="margin-top: 0.5em;">
+    <div class="flow-box active">edit-policy.md<br><small>+ _overview.md</small></div>
+    <div class="flow-arrow">&xrarr;</div>
+    <div class="flow-box new">AI Tool</div>
+    <div class="flow-arrow">&xrarr;</div>
+    <div class="flow-box new">Pattern update<br>settings + error UI</div>
+  </div>
+  <p class="muted fragment" style="margin-top: 1em;">兩個 sandbox 各自產出，組合起來就是完整的 feature demo</p>
+</section>
+
+<!-- Slide 16: TVO-5460 -->
+<section>
+  <h2>Real Example: TVO-5460</h2>
+  <h3 style="color: var(--text-secondary);">Connection Policy &mdash; SG-SPS</h3>
+  <div class="callout">
+    <p>IT admin 在 V1 環境設定 Connection Policy，<br>將 Smart Protection Service (SG-SPS) 指派給 endpoint。</p>
+  </div>
+  <table style="width: 100%; margin-top: 0.5em;">
+    <thead><tr><th>UI 面向</th><th>Sandbox</th><th>Designer 要產出什麼</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>狀態欄 + 指派操作</td>
+        <td><code>sandbox-app-ves-ei-ui</code></td>
+        <td>Endpoint list 的 connection policy 欄位</td>
+      </tr>
+      <tr>
+        <td>Policy 編輯表單</td>
+        <td><code>sandbox-app-cpm-ui</code></td>
+        <td>Connection Policy 的 SG-SPS 設定表單</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Slide 17: TVO-5460 AI Flow -->
+<section>
+  <h2>TVO-5460: Designer Workflow</h2>
+  <div class="flow-row">
+    <div class="flow-box active">endpoint-list.md<br><small>sandbox-app-ves-ei-ui</small></div>
+    <div class="flow-arrow">&xrarr;</div>
+    <div class="flow-box new">Connection policy<br>status column</div>
+  </div>
+  <div class="flow-row" style="margin-top: 0.5em;">
+    <div class="flow-box active">relay-list.md<br><small>sandbox-app-cpm-ui</small></div>
+    <div class="flow-arrow">&xrarr;</div>
+    <div class="flow-box new">SG-SPS config<br>form UI</div>
+  </div>
+  <p class="muted fragment" style="margin-top: 1em;">Designer 可以在 Sprint 1 就產出兩個 app 的 demo，不需要等任何 Frontend 開發</p>
+</section>
+
+<!-- Slide 18: Designer Workflow Demo -->
+<section>
+  <h2>Designer Workflow</h2>
+  <p>三步驟產出 Demo UI</p>
+  <div style="text-align: left; max-width: 700px; margin: 1em auto;">
+    <div class="timeline-item fragment">
+      <div class="timeline-marker"></div>
+      <div class="timeline-content">
+        <strong style="color: var(--text-primary);">Step 1:</strong> 從 sandbox repo 的 <code>docs/ui-flows/</code> 找到目標 flow doc
+      </div>
+    </div>
+    <div class="timeline-item fragment">
+      <div class="timeline-marker"></div>
+      <div class="timeline-content">
+        <strong style="color: var(--text-primary);">Step 2:</strong> 貼 <code>_overview.md</code> + flow doc 到 AI 工具（v0 / Cursor / Claude Code）
+      </div>
+    </div>
+    <div class="timeline-item fragment">
+      <div class="timeline-marker"></div>
+      <div class="timeline-content">
+        <strong style="color: var(--text-primary);">Step 3:</strong> AI 工具產出使用 <code>@tonic-one/react</code> 的 React 頁面 &rarr; 在 sandbox 裡跑起來
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 19: Output as Reference -->
+<section>
+  <h2>Demo Site as Reference</h2>
+  <p>Sandbox demo 不只是給 PM 看的 &mdash; 它也是 Frontend 的<span class="highlight">實作參考</span></p>
+  <div class="grid-2" style="margin-top: 1em;">
+    <div class="card">
+      <h4>Designer 產出</h4>
+      <p>使用真實 design system 元件的可運行 demo code</p>
+    </div>
+    <div class="card" style="border-color: var(--success);">
+      <h4>Frontend 參考</h4>
+      <p>元件組合方式、layout 結構、互動模式都可以直接參考或複製</p>
+    </div>
+  </div>
+  <div class="callout fragment">
+    <p>Demo code 不需要是 production-ready，但它提供了一個<span class="highlight">具體的起點</span>，<br>大幅減少 Frontend 的猜測和來回。</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PART 4: BENEFITS                                             -->
+<!-- ============================================================ -->
+
+<!-- Slide 20: For Designers -->
+<section>
+  <h2>For Designers</h2>
+  <div class="grid-3" style="margin-top: 1em;">
+    <div class="card">
+      <h4>Autonomy</h4>
+      <p>不用等 Frontend，自己就能產出可互動的 demo</p>
+    </div>
+    <div class="card">
+      <h4>Accuracy</h4>
+      <p>使用真實的 design system 元件，不是 Figma 近似值</p>
+    </div>
+    <div class="card">
+      <h4>Speed</h4>
+      <p>AI + Flow Docs = 數小時產出，不是數週</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 21: For PMs -->
+<section>
+  <h2>For PMs</h2>
+  <div class="grid-3" style="margin-top: 1em;">
+    <div class="card">
+      <h4>Early Feedback</h4>
+      <p>Sprint 1 就能看到可操作的 UI，不用等到 Sprint 3</p>
+    </div>
+    <div class="card">
+      <h4>Better Specs</h4>
+      <p>用 demo 驗證 spec，而不是用文字想像</p>
+    </div>
+    <div class="card">
+      <h4>Stakeholder Buy-in</h4>
+      <p>有可展示的 demo，更容易獲得 stakeholder 支持</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 22: For Engineers -->
+<section>
+  <h2>For Engineers</h2>
+  <div class="grid-3" style="margin-top: 1em;">
+    <div class="card">
+      <h4>Clear Reference</h4>
+      <p>Demo code 比 Figma 截圖更明確 &mdash; 元件、props、layout 都看得到</p>
+    </div>
+    <div class="card">
+      <h4>Less Rework</h4>
+      <p>Spec 偏差在 demo 階段就被發現，不是 code review 才發現</p>
+    </div>
+    <div class="card">
+      <h4>Flow Docs</h4>
+      <p>結構化的 UI 文件也是工程師理解複雜 flow 的好工具</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 23: ROI -->
+<section>
+  <h2>ROI Summary</h2>
+  <div class="grid-2" style="margin-top: 1em;">
+    <div style="text-align: center;">
+      <div class="big-number">78</div>
+      <p>UI flow docs across 4 apps</p>
+    </div>
+    <div style="text-align: center;">
+      <div class="big-number">4</div>
+      <p>Sandbox repos ready to use</p>
+    </div>
+  </div>
+  <div class="grid-3" style="margin-top: 0.5em;">
+    <div style="text-align: center;">
+      <div class="big-number" style="font-size: 2em; color: var(--success);">2x</div>
+      <p>更早的 PM feedback</p>
+    </div>
+    <div style="text-align: center;">
+      <div class="big-number" style="font-size: 2em; color: var(--success);">&darr;50%</div>
+      <p>Spec 理解偏差</p>
+    </div>
+    <div style="text-align: center;">
+      <div class="big-number" style="font-size: 2em; color: var(--success);">0</div>
+      <p>Frontend 等待 for demo</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PART 5: ONE MORE THING                                       -->
+<!-- ============================================================ -->
+
+<!-- Slide 24: One More Thing -->
+<section data-background-color="#000000">
+  <div class="one-more-thing">
+    One more <span>thing</span>...
+  </div>
+</section>
+
+<!-- Slide 25: The Missing Piece -->
+<section>
+  <h2>The Missing Piece</h2>
+  <p>UI Flow Docs 描述了<span class="highlight">畫面長什麼樣</span></p>
+  <p class="fragment">但缺少了<span class="danger">行為怎麼轉換</span></p>
+  <div class="grid-2 fragment" style="margin-top: 1em;">
+    <div class="card" style="border-color: var(--success);">
+      <h4>Flow Docs 擅長</h4>
+      <p>Layout、欄位、元件名稱、<br>操作步驟（線性流程）</p>
+    </div>
+    <div class="card" style="border-color: var(--danger);">
+      <h4>Flow Docs 缺少</h4>
+      <p>狀態之間怎麼轉換、<br>哪些操作在哪個狀態下被禁止、<br>分支邏輯的完整圖</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 26: Statecharts -->
+<section>
+  <h2>XState Statecharts</h2>
+  <p>用<span class="highlight">狀態機</span>精確描述 UI 行為</p>
+  <div class="grid-2" style="margin-top: 1em;">
+    <div style="text-align: left;">
+      <pre style="font-size: 0.8em;"><code>states: {
+  clean: {
+    on: {
+      EDIT_FIELD: 'dirty',
+      CLICK_CANCEL: 'policyList'
+    }
+  },
+  dirty: {
+    on: {
+      CLICK_SAVE: 'validating',
+      CLICK_CANCEL: 'discardConfirm'
+    }
+  },
+  discardConfirm: {
+    on: {
+      CONFIRM: 'policyList',
+      CANCEL: 'dirty'
+    }
+  }
+}</code></pre>
+    </div>
+    <div>
+      <div class="card" style="margin-top: 0;">
+        <h4>Hierarchical States</h4>
+        <p>狀態可以巢狀 &mdash; 「每個 capability tab 各自有 idle/editing/saving」</p>
+      </div>
+      <div class="card">
+        <h4>Parallel States</h4>
+        <p>多個獨立狀態同時運行 &mdash; 「form 狀態和 priority tab 狀態互不影響」</p>
+      </div>
+      <div class="card">
+        <h4>Guards</h4>
+        <p>條件守衛 &mdash; 「只有 isDirty && hasPermission 才能 Save」</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 27: Demo: SPM Edit Policy -->
+<section>
+  <h2>Demo: SPM Edit Policy</h2>
+  <p>三個<span class="highlight">並行狀態機</span>在同一個畫面上</p>
+  <div class="grid-3" style="margin-top: 0.8em;">
+    <div class="card">
+      <h4>1. Form State</h4>
+      <p style="font-size: 0.55em;">
+        clean &rarr; dirty &rarr; validating &rarr; saving<br>
+        <span class="muted">+ NCIE confirm 分支</span><br>
+        <span class="muted">+ Discard confirm 分支</span>
+      </p>
+    </div>
+    <div class="card">
+      <h4>2. Priority Tabs</h4>
+      <p style="font-size: 0.55em;">
+        idle &harr; renaming<br>
+        <span class="muted">renaming 時其他 tab disabled</span><br>
+        <span class="muted">不能同時 add + rename</span>
+      </p>
+    </div>
+    <div class="card">
+      <h4>3. Selection Modals</h4>
+      <p style="font-size: 0.55em;">
+        closed &harr; groupSelection<br>
+        closed &harr; osSelection<br>
+        <span class="muted">互斥：一次只開一個</span>
+      </p>
+    </div>
+  </div>
+  <p class="muted fragment" style="margin-top: 0.5em;">
+    <a href="https://github.com/trend-ux/sandbox-app-spm-ui/blob/V1E-XXXXXX/docs-ui-flow-reference/docs/ui-flows/statecharts/spm-edit-policy.statechart.ts" target="_blank">View statechart source</a>
+    &mdash; 貼到 Stately Studio 可互動模擬
+  </p>
+</section>
+
+<!-- Slide 28: Stately Studio -->
+<section>
+  <h2>Stately Studio</h2>
+  <p>Designer 可以<span class="highlight">互動式走過整個流程</span></p>
+  <div style="margin: 1em 0;">
+    <div class="flow-row">
+      <div class="flow-box active">.statechart.ts</div>
+      <div class="flow-arrow">&xrarr;</div>
+      <div class="flow-box new" style="min-width: 150px;">Stately Studio<br><small>Import &rarr; Simulate</small></div>
+      <div class="flow-arrow">&xrarr;</div>
+      <div class="flow-box new">Interactive<br>State Diagram</div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-top: 0.5em;">
+    <div class="card">
+      <h4>Simulate Mode</h4>
+      <p>點擊事件（如 CLICK_SAVE），看狀態怎麼變。被 guard 擋住的事件會顯示為灰色 &mdash; 立刻理解為什麼按鈕 disabled。</p>
+    </div>
+    <div class="card">
+      <h4>Export</h4>
+      <p>匯出 PNG/SVG 嵌入 Figma、Confluence、PR。分享連結讓 PM 也能互動操作。</p>
+    </div>
+  </div>
+  <p class="muted">
+    <a href="https://stately.ai/editor" target="_blank">stately.ai/editor</a> &mdash; 免費、不需登入
+  </p>
+</section>
+
+<!-- Slide 29: The Complete Picture -->
+<section>
+  <h2>The Complete Picture</h2>
+  <p>三個層次組成完整的 UI 規格</p>
+  <div class="grid-3" style="margin-top: 1em;">
+    <div class="card" style="border-color: var(--warning);">
+      <h4>Visual</h4>
+      <p style="font-size: 0.55em;">
+        <strong>Figma</strong><br>
+        色彩、字型、間距、品牌<br>
+        <span class="muted">&ldquo;長什麼樣&rdquo;</span>
+      </p>
+    </div>
+    <div class="card" style="border-color: var(--accent);">
+      <h4>Structure</h4>
+      <p style="font-size: 0.55em;">
+        <strong>UI Flow Docs</strong><br>
+        Layout、欄位、元件、操作步驟<br>
+        <span class="muted">&ldquo;有什麼東西&rdquo;</span>
+      </p>
+    </div>
+    <div class="card" style="border-color: var(--success);">
+      <h4>Behavior</h4>
+      <p style="font-size: 0.55em;">
+        <strong>XState Statecharts</strong><br>
+        狀態轉換、guards、並行狀態<br>
+        <span class="muted">&ldquo;怎麼運作&rdquo;</span>
+      </p>
+    </div>
+  </div>
+  <div class="callout fragment" style="margin-top: 0.8em;">
+    <p>三者結合 = 一份 AI 可以完整解讀的 UI 規格<br>
+    = Designer 可以獨立產出高品質 demo 的基礎</p>
+  </div>
+</section>
+
+<!-- Slide 30: Future Vision -->
+<section>
+  <h2>Future Vision</h2>
+  <p>當 AI 工具同時讀取三個層次...</p>
+  <div class="flow-row" style="margin: 1em 0;">
+    <div class="flow-box active">Figma<br><small>Visual</small></div>
+    <div class="flow-arrow">+</div>
+    <div class="flow-box active">Flow Doc<br><small>Structure</small></div>
+    <div class="flow-arrow">+</div>
+    <div class="flow-box active">Statechart<br><small>Behavior</small></div>
+  </div>
+  <div class="flow-row">
+    <div class="flow-arrow" style="font-size: 1.5em;">&darr;</div>
+  </div>
+  <div class="flow-row">
+    <div class="flow-box new" style="min-width: 300px; border-color: var(--success);">
+      AI-Generated Prototype<br>
+      <small>帶完整狀態管理的可互動 demo</small><br>
+      <small class="muted">不只是靜態 wireframe</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CLOSING                                                      -->
+<!-- ============================================================ -->
+
+<!-- Slide 31: Summary -->
+<section>
+  <h2>Summary</h2>
+  <table style="width: 100%;">
+    <thead>
+      <tr><th>Layer</th><th>Tool</th><th>Describes</th><th>For</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="warning">Visual</span></td>
+        <td>Figma</td>
+        <td>長什麼樣</td>
+        <td>Brand, Polish</td>
+      </tr>
+      <tr>
+        <td><span class="highlight">Structure</span></td>
+        <td>UI Flow Docs</td>
+        <td>有什麼東西</td>
+        <td>AI Prototyping</td>
+      </tr>
+      <tr>
+        <td><span class="success">Behavior</span></td>
+        <td>XState Statecharts</td>
+        <td>怎麼運作</td>
+        <td>Precision, Simulation</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout fragment" style="margin-top: 1em;">
+    <p>Sandbox-Driven Development = <br>
+    讓 Designer 擁有獨立產出可互動 demo 的能力，<br>
+    加速整個 Design &rarr; PM &rarr; Frontend 的循環。</p>
+  </div>
+</section>
+
+<!-- Slide 32: Links -->
+<section>
+  <h2>Links &amp; Resources</h2>
+  <table style="width: 100%;">
+    <thead><tr><th>Resource</th><th>Link</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>sandbox-app-spm-ui PR</td>
+        <td><a href="https://github.com/trend-ux/sandbox-app-spm-ui/pull/3" target="_blank">github.com/trend-ux/sandbox-app-spm-ui/pull/3</a></td>
+      </tr>
+      <tr>
+        <td>sandbox-app-ves-ei-ui PR</td>
+        <td><a href="https://github.com/trend-ux/sandbox-app-ves-ei-ui/pull/2" target="_blank">github.com/trend-ux/sandbox-app-ves-ei-ui/pull/2</a></td>
+      </tr>
+      <tr>
+        <td>sandbox-app-rpm-ui PR</td>
+        <td><a href="https://github.com/trend-ux/sandbox-app-rpm-ui/pull/1" target="_blank">github.com/trend-ux/sandbox-app-rpm-ui/pull/1</a></td>
+      </tr>
+      <tr>
+        <td>sandbox-app-cpm-ui PR</td>
+        <td><a href="https://github.com/trend-ux/sandbox-app-cpm-ui/pull/1" target="_blank">github.com/trend-ux/sandbox-app-cpm-ui/pull/1</a></td>
+      </tr>
+      <tr>
+        <td>XState Statechart PoC</td>
+        <td><a href="https://github.com/trend-ux/sandbox-app-spm-ui/blob/V1E-XXXXXX/docs-ui-flow-reference/docs/ui-flows/statecharts/spm-edit-policy.statechart.ts" target="_blank">spm-edit-policy.statechart.ts</a></td>
+      </tr>
+      <tr>
+        <td>Stately Studio</td>
+        <td><a href="https://stately.ai/editor" target="_blank">stately.ai/editor</a></td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 1.5em; font-size: 0.9em; color: var(--text-primary);">Thank you.</p>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    width: 1280,
+    height: 720,
+    margin: 0.08,
+    transition: 'slide',
+    backgroundTransition: 'fade',
+    center: true,
+    controlsTutorial: false,
+  });
+</script>
+</body>
+</html>

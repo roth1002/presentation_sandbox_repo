@@ -1,0 +1,323 @@
+/* ============================================================
+   Sandbox Presentation — Dark Tech Theme
+   ============================================================ */
+
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: #1e293b;
+  --accent: #0ea5e9;
+  --accent-dim: #0284c7;
+  --accent-glow: rgba(14, 165, 233, 0.15);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --border: #334155;
+}
+
+.reveal {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Section backgrounds */
+.reveal .slides section {
+  color: var(--text-primary);
+}
+
+/* Headings */
+.reveal h1 {
+  font-size: 2.2em;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: none;
+  letter-spacing: -0.02em;
+}
+
+.reveal h2 {
+  font-size: 1.6em;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.reveal h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: none;
+}
+
+/* Body text */
+.reveal p, .reveal li {
+  font-size: 0.75em;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.reveal .highlight {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.reveal .danger {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.reveal .success {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.reveal .warning {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.reveal .muted {
+  color: var(--text-muted);
+  font-size: 0.65em;
+}
+
+/* Tables */
+.reveal table {
+  border-collapse: collapse;
+  font-size: 0.65em;
+  margin: 0.5em auto;
+}
+
+.reveal table th {
+  background: var(--bg-secondary);
+  color: var(--accent);
+  font-weight: 600;
+  padding: 0.5em 1em;
+  border-bottom: 2px solid var(--accent);
+  text-align: left;
+}
+
+.reveal table td {
+  padding: 0.4em 1em;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.reveal table tr:hover td {
+  background: var(--accent-glow);
+}
+
+/* Code blocks */
+.reveal pre {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.55em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.reveal code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: var(--accent);
+}
+
+/* Cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.2em;
+  margin: 0.4em;
+  text-align: left;
+}
+
+.card h4 {
+  color: var(--accent);
+  font-size: 0.8em;
+  margin: 0 0 0.3em 0;
+}
+
+.card p {
+  font-size: 0.6em;
+  margin: 0;
+}
+
+/* Grid layouts */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
+  margin-top: 0.5em;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.8em;
+  margin-top: 0.5em;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0.6em;
+  margin-top: 0.5em;
+}
+
+/* Flow diagrams (CSS-based) */
+.flow-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3em;
+  margin: 0.5em 0;
+  flex-wrap: wrap;
+}
+
+.flow-box {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5em 1em;
+  font-size: 0.65em;
+  color: var(--text-primary);
+  text-align: center;
+  min-width: 100px;
+}
+
+.flow-box.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.flow-box.problem {
+  border-color: var(--danger);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+}
+
+.flow-box.new {
+  border-color: var(--success);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.15);
+}
+
+.flow-arrow {
+  color: var(--text-muted);
+  font-size: 1.2em;
+}
+
+.flow-arrow.wait {
+  color: var(--danger);
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  margin: 1em 0;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1em;
+  margin-bottom: 0.8em;
+}
+
+.timeline-marker {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  margin-top: 0.3em;
+}
+
+.timeline-marker.wait {
+  background: var(--danger);
+}
+
+.timeline-content {
+  font-size: 0.65em;
+  color: var(--text-secondary);
+}
+
+/* Big number */
+.big-number {
+  font-size: 3em;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  margin: 0.2em 0;
+}
+
+/* Quote / callout */
+.callout {
+  background: var(--accent-glow);
+  border-left: 4px solid var(--accent);
+  padding: 0.8em 1.2em;
+  border-radius: 0 8px 8px 0;
+  margin: 0.8em 0;
+  text-align: left;
+}
+
+.callout p {
+  color: var(--text-primary);
+  font-size: 0.7em;
+  margin: 0;
+}
+
+/* One More Thing */
+.one-more-thing {
+  font-size: 2.5em;
+  font-weight: 300;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.one-more-thing span {
+  color: var(--accent);
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* Links */
+.reveal a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.reveal a:hover {
+  color: #38bdf8;
+}
+
+/* Badge */
+.badge {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--bg-primary);
+  font-size: 0.55em;
+  font-weight: 600;
+  padding: 0.2em 0.6em;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-left: 0.3em;
+}
+
+/* Emoji sizing */
+.emoji {
+  font-size: 1.5em;
+  vertical-align: middle;
+}
+
+/* Fragment fade-in override */
+.reveal .fragment.visible {
+  opacity: 1;
+}
+
+/* Slide number */
+.reveal .slide-number {
+  color: var(--text-muted);
+  font-size: 0.5em;
+}
