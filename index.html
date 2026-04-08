@@ -561,41 +561,39 @@ Trigger: Click policy row
 <section>
   <h2>XState Statecharts</h2>
   <p>用<span class="highlight">狀態機</span>精確描述 UI 行為</p>
-  <div class="grid-2" style="margin-top: 1em;">
+  <div class="grid-2" style="margin-top: 0.5em; align-items: start;">
     <div style="text-align: left;">
-      <pre style="font-size: 0.8em;"><code>states: {
-  clean: {
-    on: {
-      EDIT_FIELD: 'dirty',
-      CLICK_CANCEL: 'policyList'
-    }
-  },
-  dirty: {
-    on: {
-      CLICK_SAVE: 'validating',
-      CLICK_CANCEL: 'discardConfirm'
-    }
-  },
-  discardConfirm: {
-    on: {
-      CONFIRM: 'policyList',
-      CANCEL: 'dirty'
-    }
+      <pre style="font-size: 0.7em; margin: 0;"><code>clean: {
+  on: {
+    EDIT_FIELD: 'dirty',
+    CLICK_CANCEL: 'policyList'
+  }
+},
+dirty: {
+  on: {
+    CLICK_SAVE: 'validating',
+    CLICK_CANCEL: 'discardConfirm'
+  }
+},
+discardConfirm: {
+  on: {
+    CONFIRM: 'policyList',
+    CANCEL: 'dirty'
   }
 }</code></pre>
     </div>
     <div>
-      <div class="card" style="margin-top: 0;">
-        <h4>Hierarchical States</h4>
-        <p>狀態可以巢狀 &mdash; 「每個 capability tab 各自有 idle/editing/saving」</p>
+      <div class="card" style="margin-top: 0; padding: 0.8em;">
+        <h4 style="font-size: 0.7em;">Hierarchical States</h4>
+        <p style="font-size: 0.55em;">狀態可以巢狀 &mdash; 每個 capability tab 各自有 idle/editing/saving</p>
       </div>
-      <div class="card">
-        <h4>Parallel States</h4>
-        <p>多個獨立狀態同時運行 &mdash; 「form 狀態和 priority tab 狀態互不影響」</p>
+      <div class="card" style="padding: 0.8em;">
+        <h4 style="font-size: 0.7em;">Parallel States</h4>
+        <p style="font-size: 0.55em;">多個獨立狀態同時運行 &mdash; form 狀態和 priority tab 狀態互不影響</p>
       </div>
-      <div class="card">
-        <h4>Guards</h4>
-        <p>條件守衛 &mdash; 「只有 isDirty && hasPermission 才能 Save」</p>
+      <div class="card" style="padding: 0.8em;">
+        <h4 style="font-size: 0.7em;">Guards</h4>
+        <p style="font-size: 0.55em;">條件守衛 &mdash; 只有 isDirty && hasPermission 才能 Save</p>
       </div>
     </div>
   </div>
