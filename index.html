@@ -73,15 +73,15 @@
 <!-- Slide 4: What We Solve vs Not -->
 <section>
   <h2>Solved vs Unsolved</h2>
-  <p style="margin-bottom: 0.3em;">Sandbox 解決了什麼、還有什麼沒解決</p>
+  <p style="margin-bottom: 0.2em;">Sandbox 解決了什麼、還有什麼沒解決</p>
   <table style="width: 100%;">
     <thead>
-      <tr><th style="width: 40%;">Pain Point</th><th style="width: 30%;"><span class="success">Sandbox 解決</span></th><th style="width: 30%;"><span class="danger">尚未解決</span></th></tr>
+      <tr><th style="width: 35%;">Pain Point</th><th style="width: 30%;"><span class="success">Sandbox 解決</span></th><th style="width: 35%;"><span class="danger">尚未解決</span></th></tr>
     </thead>
     <tbody>
       <tr>
         <td>#1 Designer 等 Frontend</td>
-        <td class="success">AI + Sandbox 產出 demo，不需等</td>
+        <td class="success">AI + Sandbox 產出 demo</td>
         <td class="muted">—</td>
       </tr>
       <tr>
@@ -91,37 +91,74 @@
       </tr>
       <tr>
         <td>#3 靜態畫面缺行為描述</td>
-        <td class="success">Flow Docs + Statecharts 補足</td>
+        <td class="success">Flow Docs + Statecharts</td>
         <td class="muted">—</td>
       </tr>
       <tr>
         <td>#4 Frontend 重工</td>
-        <td class="success">Demo 作為早期驗證 + 實作參考</td>
-        <td>Demo code 品質不等於 production</td>
+        <td class="success">Demo 作為早期驗證</td>
+        <td>Demo code &ne; production quality</td>
       </tr>
       <tr>
         <td>#5 Figma 共編 vs Code 協作</td>
         <td class="muted">—</td>
-        <td>Sandbox 用 git PR，Designer 門檻高</td>
+        <td>Sandbox 用 git PR，門檻高</td>
       </tr>
       <tr>
         <td>#6 Design token 不同步</td>
         <td class="muted">—</td>
-        <td>Figma token 和 Tonic One 仍各自維護</td>
+        <td>Figma &harr; Tonic One 各自維護</td>
+      </tr>
+      <tr>
+        <td>#7 多 TVO owner 功能重疊</td>
+        <td class="muted">—</td>
+        <td>Sandbox code 難以合回 production</td>
+      </tr>
+      <tr>
+        <td>#8 Production &rarr; Sandbox 同步</td>
+        <td class="muted">—</td>
+        <td>何時、如何 sync 回來沒有定義</td>
       </tr>
     </tbody>
   </table>
 </section>
 
-<!-- Slide 5: Additional Risks -->
+<!-- Slide 5: Risks — Code Sync Challenge -->
 <section>
-  <h2>Known Risks</h2>
-  <p style="margin-bottom: 0.3em;">誠實面對的挑戰</p>
-  <div class="grid-2">
-    <div class="card" style="border-color: var(--warning); padding: 0.8em;">
-      <h4 style="font-size: 0.7em;">Sandbox vs Production 漂移</h4>
-      <p style="font-size: 0.55em;">Production 持續開發，sandbox 是 snapshot。需要定期同步機制，否則 demo 會失準。</p>
+  <h2>The Sync Challenge</h2>
+  <p style="margin-bottom: 0.3em;">Sandbox &harr; Production 的<span class="highlight">雙向同步</span>是核心難題</p>
+  <div class="grid-2" style="margin-top: 0.3em;">
+    <div class="card" style="border-color: var(--danger); padding: 0.8em;">
+      <h4 style="font-size: 0.7em;">Sandbox &rarr; Production 的困難</h4>
+      <p style="font-size: 0.5em;">
+        當多個 TVO owner 各自在 sandbox 上 prototype 功能，彼此的改動可能<span class="danger">互相重疊</span>：<br>
+        &bull; Feature A 改了 endpoint list 的 action bar<br>
+        &bull; Feature B 也改了同一個 action bar<br>
+        &bull; 兩邊 sandbox demo 各自能跑，但合不回同一個 production codebase<br>
+        <span class="muted">Sandbox demo 是「概念驗證」不是「可合併的 PR」</span>
+      </p>
     </div>
+    <div class="card" style="border-color: var(--warning); padding: 0.8em;">
+      <h4 style="font-size: 0.7em;">Production &rarr; Sandbox 的時機</h4>
+      <p style="font-size: 0.5em;">
+        Production 持續開發，sandbox 是某時間點的 snapshot。<br>需要定義<span class="highlight">何時 sync 回來</span>：<br>
+        &bull; <strong>Major release 後</strong> &mdash; 每季 re-scaffold<br>
+        &bull; <strong>Design system 升版後</strong> &mdash; Tonic One 版本變更時<br>
+        &bull; <strong>新 feature 進 production 後</strong> &mdash; 更新對應的 flow docs + mock data<br>
+        <span class="muted">目前無自動化，需要手動觸發</span>
+      </p>
+    </div>
+  </div>
+  <div class="callout fragment" style="margin-top: 0.3em;">
+    <p><span class="highlight">關鍵心態轉換：</span>Sandbox demo 的價值是<strong>驗證設計方向</strong>，不是產出可合併的 code。<br>
+    Frontend 參考 demo 的 layout 和互動邏輯，但<strong>自己寫 production code</strong>。</p>
+  </div>
+</section>
+
+<!-- Slide 5b: Additional Risks -->
+<section>
+  <h2>Other Known Risks</h2>
+  <div class="grid-2" style="margin-top: 0.5em;">
     <div class="card" style="border-color: var(--warning); padding: 0.8em;">
       <h4 style="font-size: 0.7em;">78 份 Flow Docs 的維護</h4>
       <p style="font-size: 0.55em;">手寫文件 + production code 各自演進 = 遲早不同步。需要半自動化生成或 CI 驗證。</p>
@@ -133,6 +170,10 @@
     <div class="card" style="border-color: var(--warning); padding: 0.8em;">
       <h4 style="font-size: 0.7em;">Designer 的 AI 工具學習曲線</h4>
       <p style="font-size: 0.55em;">v0/Cursor/Claude Code 各有學習門檻。需要 onboarding 和 prompt 範本支援。</p>
+    </div>
+    <div class="card" style="border-color: var(--warning); padding: 0.8em;">
+      <h4 style="font-size: 0.7em;">Mock Data 只覆蓋 Happy Path</h4>
+      <p style="font-size: 0.55em;">Sandbox mock 回傳固定假資料。Edge case（空列表、超長名稱、API 錯誤）難以完整覆蓋。</p>
     </div>
   </div>
   <div class="callout fragment" style="margin-top: 0.5em;">
@@ -835,7 +876,7 @@ discardConfirm: {
   <h2>Next Steps</h2>
   <table style="width: 100%;">
     <thead>
-      <tr><th style="width: 5%;">#</th><th style="width: 45%;">Action</th><th style="width: 25%;">Owner</th><th style="width: 25%;">Timeline</th></tr>
+      <tr><th style="width: 5%;">#</th><th style="width: 50%;">Action</th><th style="width: 22%;">Owner</th><th style="width: 23%;">Timeline</th></tr>
     </thead>
     <tbody>
       <tr>
@@ -846,27 +887,33 @@ discardConfirm: {
       </tr>
       <tr>
         <td>2</td>
-        <td>建立 <span class="highlight">AI Prompt 範本庫</span>，降低 Designer 使用 v0/Cursor/Claude Code 的門檻</td>
+        <td>建立 <span class="highlight">AI Prompt 範本庫</span>，降低 Designer 使用 AI 工具的門檻</td>
         <td>Frontend + UX</td>
         <td>本季</td>
       </tr>
       <tr>
         <td>3</td>
-        <td>建立 <span class="highlight">Sandbox 定期同步機制</span>（CI job 或 quarterly refresh），防止與 production 漂移</td>
-        <td>Frontend</td>
-        <td>下季</td>
+        <td>明確定位 <span class="highlight">Figma vs Sandbox 分工</span> + 定義 <span class="highlight">Sandbox demo 的完成標準</span></td>
+        <td>UX Team</td>
+        <td>本季</td>
       </tr>
       <tr>
         <td>4</td>
-        <td>探索 <span class="highlight">Flow Docs 半自動生成</span>，從 source code 提取 UI 結構，減少手動維護</td>
+        <td>定義 <span class="highlight">Production &rarr; Sandbox 同步時機</span>：major release / design system 升版 / 新 feature 上線</td>
         <td>Frontend</td>
         <td>下季</td>
       </tr>
       <tr>
         <td>5</td>
-        <td>明確定位 <span class="highlight">Figma vs Sandbox 的分工</span>：Figma = 精修設計；Sandbox = 快速驗證互動</td>
-        <td>UX Team</td>
-        <td>本季</td>
+        <td>建立 <span class="highlight">多 TVO owner 的 sandbox 協作規範</span>：per-feature branch、避免同區域重疊修改</td>
+        <td>Frontend + PM</td>
+        <td>下季</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>探索 <span class="highlight">Flow Docs 半自動生成</span> + Sandbox re-scaffold 自動化</td>
+        <td>Frontend</td>
+        <td>下季</td>
       </tr>
     </tbody>
   </table>
