@@ -253,6 +253,58 @@
   yarn dev → 立刻可跑</code></pre>
 </section>
 
+<!-- Slide 9b: sandbox-scaffold Tool -->
+<section>
+  <h2>sandbox-scaffold</h2>
+  <p>自動化萃取工具 &mdash; 一個 <span class="highlight">Claude Code Skill</span></p>
+  <div class="flow-row" style="margin: 0.5em 0;">
+    <div class="flow-box">Production Repo URL</div>
+    <div class="flow-arrow">&xrarr;</div>
+    <div class="flow-box active" style="min-width: 160px;">sandbox-scaffold<br><small>3-Phase Process</small></div>
+    <div class="flow-arrow">&xrarr;</div>
+    <div class="flow-box new">Runnable Sandbox</div>
+  </div>
+  <div class="grid-3" style="margin-top: 0.5em;">
+    <div class="card" style="padding: 0.8em;">
+      <h4 style="font-size: 0.65em;">Phase 1: ANALYZE</h4>
+      <p style="font-size: 0.5em;">
+        遠端讀取 repo，自動偵測：<br>
+        &bull; Auth 機制（Cookie/JWT/iframe）<br>
+        &bull; Feature flags（Cookie/API/env）<br>
+        &bull; 權限系統（RBAC/hooks/HOC）<br>
+        &bull; Mock server（MSW/Koa/Express）<br>
+        &bull; Build tool（Webpack/Vite/CRA）<br>
+        &bull; i18n、styling、state 管理
+      </p>
+    </div>
+    <div class="card" style="padding: 0.8em;">
+      <h4 style="font-size: 0.65em;">Phase 2: SCAFFOLD</h4>
+      <p style="font-size: 0.5em;">
+        下載 src/ + mock data，產出：<br>
+        &bull; 簡化的 build config（去 ESLint/CI）<br>
+        &bull; <code>sandbox-entry.jsx</code> shim auth/flags<br>
+        &bull; 保留原 mock server 直接跑<br>
+        &bull; 自動產出 <code>package.json</code><br>
+        <span class="muted">核心原則：Subtraction, not Translation</span>
+      </p>
+    </div>
+    <div class="card" style="padding: 0.8em;">
+      <h4 style="font-size: 0.65em;">Phase 3: STACK</h4>
+      <p style="font-size: 0.5em;">
+        在 sandbox 上疊加新功能：<br>
+        &bull; 修改 sandbox code 新增 UI<br>
+        &bull; 即時預覽 live preview<br>
+        &bull; 搭配 AI 工具快速迭代<br>
+        <span class="muted">Designer 在這個階段操作</span>
+      </p>
+    </div>
+  </div>
+  <p class="muted" style="margin-top: 0.3em;">
+    <a href="https://github.com/trend-ux/sandbox-scaffold" target="_blank">github.com/trend-ux/sandbox-scaffold</a>
+    &mdash; 支援 Webpack / Vite / CRA / Next.js
+  </p>
+</section>
+
 <!-- Slide 10: How it works -->
 <section>
   <h2>How It Works</h2>
